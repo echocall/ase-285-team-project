@@ -4,6 +4,9 @@ import SetUp from './components/setup/SetUp';
 import MenuDashboard from './components/menu/MenuDashboard';
 import CreateRestaurant from './components/restaurant/CreateRestaurant';
 import ChangeLoginInfo from './components/auth/ChangeLoginInfo';
+import AddMenuItem from './components/menuitems/AddMenuItem';
+import MenuItemSwap from './components/menuitems/MenuItemSwap';
+
 import {
 	BrowserRouter as Router,
 	Route,
@@ -53,6 +56,14 @@ function App() {
 						<Route
 							path='/create-restaurant'
 							element={<CreateRestaurant />}
+						/>
+						<Route
+							path='/addmenuitem'
+							element={<AddMenuItem />}
+						/>
+						<Route
+							path='/create-restaurant'
+							element={<MenuItemSwap />}
 						/>
 					</Routes>
 				</div>

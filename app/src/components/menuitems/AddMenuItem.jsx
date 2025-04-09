@@ -1,29 +1,36 @@
-import { useState, changeState } from 'react';
-import '.app/src/css/styles.css'
-import Checkbox from './assets/Checkbox.jsx';
+import { useState } from 'react';
+import '../../css/styles.css';
 
 const AddMenuItemForm = () => {
-    const [inputs, setInputs] = useState({});
-    const [selectedIds, setSelectedIds] = useState({});
-    const selectedAllergens = [];
+    const [inputs, setInputs] = useState({
+        itemName: '',
+        ingredients: '',
+        description: ''
+    });
+    const [selectedIds, setSelectedIds] = useState([]);
+
+    const handleInputChange = (event) => {
+        const { name, value } = event.target;
+        setInputs(prev => ({
+            ...prev,
+            [name]: value
+        }));
+    };
 
     const handleCheckboxChange = (event) => {
-        const checkedId = event.target.value;
-        if (event.target.selected){
-            setSelectedId([...selectedIds, checkedId]);
-            selectedAllergens.push(selectedIds);
-            print(selectedAllergens);
-        }else{
-            setSelectedId(selectedIds.filter(id=>id !== checkedId))
+        const id = event.target.value;
+        if (event.target.checked) {
+            setSelectedIds(prev => [...prev, id]);
+        } else {
+            setSelectedIds(prev => prev.filter(existingId => existingId !== id));
         }
-    }
+    };
 
-    // For testing the dynamically created check list.
-    const [allergens, setAllergens] = useState([
-        { allergenID: "1", name:"Peanut"},
-        { allergenID: "2", name:"Gluten"},
-        { allergenID: "3", name: "Eggs"},
-        { allergenID: "4", name: "Dairy"},
+    const [allergens] = useState([
+        { allergenID: "1", name: "Peanut" },
+        { allergenID: "2", name: "Gluten" },
+        { allergenID: "3", name: "Eggs" },
+        { allergenID: "4", name: "Dairy" },
     ]);
 
     return (
@@ -32,42 +39,63 @@ const AddMenuItemForm = () => {
                 <div className="left-side">
                     <div name="nameInput">
                         <h3 className="title">Name:</h3>
-                        <input type="text" id="itemName" cols="50"
-                        name="itemName"/>
+                        <input 
+                            type="text" 
+                            id="itemName" 
+                            name="itemName"
+                            value={inputs.itemName}
+                            onChange={handleInputChange}
+                        />
                     </div>
                     <div name="ingredientsInput">
                         <h3 className="title">Ingredients</h3>
-                        <textarea id="ingredients" name="ingredients" rows="4" cols="50">List Ingredients Here</textarea>
+                        <textarea 
+                            id="ingredients" 
+                            name="ingredients" 
+                            rows="4" 
+                            cols="50"
+                            value={inputs.ingredients}
+                            onChange={handleInputChange}
+                        />
                     </div>
                     <div className="descriptionInput">
                         <h3 className="title">Description</h3>
-                        <textarea id="description" name="description" rows="4" cols="50">   </textarea>
+                        <textarea 
+                            id="description" 
+                            name="description" 
+                            rows="4" 
+                            cols="50"
+                            value={inputs.description}
+                            onChange={handleInputChange}
+                        />
                     </div>
                 </div>
                 <div className="right-side">
                     <h3>This Item Contains the Following Allergens:</h3>
                     <div className="display-allergens">
-                        <p>A problem to communicate.</p>
+                        <p>Selected IDs: {selectedIds.join(', ')}</p>
                     </div>
                     <div className="allergen-add">
                         {allergens.map((allergen) => (
-                            <div>
-                                <input 
-                                type="checkbox"
-                                id={allergen.allergenID}
-                                className="allergen-checkbox" 
-                                key={allergen.allergenID}
+                            <div key={allergen.allergenID}>
+                                <input
+                                    type="checkbox"
+                                    id={allergen.allergenID}
+                                    className="allergen-checkbox"
+                                    value={allergen.allergenID}
+                                    checked={selectedIds.includes(allergen.allergenID)}
+                                    onChange={handleCheckboxChange}
                                 />
-                                <label for={allergen.allergenID}>{ allergen.name}</label>
+                                <label htmlFor={allergen.allergenID}>{allergen.name}</label>
                             </div>
                         ))}
                     </div>
                 </div>
-                <button>+ Add Another</button>
-                <button>Save</button>
+                <button type="button">+ Add Another</button>
+                <button type="submit">Save</button>
             </form>
         </div>
-    )
-}
+    );
+};
 
 export default AddMenuItemForm;

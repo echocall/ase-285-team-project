@@ -2,8 +2,14 @@ import Header from './components/Header';
 import SignInUp from './components/auth/SignInUp';
 import SetUp from './components/setup/SetUp';
 import MenuDashboard from './components/menu/MenuDashboard';
-import CreateRestaurant from './components/restaurant/CreateRestaurant';
-import ChangeLoginInfo from './components/auth/ChangeLoginInfo';
+import EditBusinessInfo from './components/restaurant/EditBusinessInfo';
+import EditLoginInfo from './components/auth/EditLoginInfo';
+// import FilterPanel from './components/menu/FilterPanel';
+import AddMenuItem from './components/menuitems/AddMenuItem.jsx';
+import MenuItemSwap from './components/menuitems/MenuItemSwap.jsx';
+import MenuItemsPage from './components/menuitems/MenuItemsPage.jsx';
+import MenuItemPicklist from './components/menuitems/MenuItemPicklist.jsx'
+
 import {
 	BrowserRouter as Router,
 	Route,
@@ -38,8 +44,8 @@ function App() {
 						/>
 
 						<Route
-							path='/changeLogin'
-							element={<ChangeLoginInfo />}
+							path='/edit-login-info'
+							element={<EditLoginInfo />}
 						/>
 
 						<Route
@@ -51,8 +57,20 @@ function App() {
 							element={<MenuDashboard />}
 						/>
 						<Route
-							path='/create-restaurant'
-							element={<CreateRestaurant />}
+							path='/edit-business-info'
+							element={<EditBusinessInfo />}
+						/>
+						<Route
+							path='/add-menu-item'
+							element={<AddMenuItem />}
+						/>
+						<Route
+							path='/swap-menu'
+							element={<MenuItemPicklist />}
+						/>
+						<Route
+							path='/menuitems'
+							element={<MenuItemsPage />}
 						/>
 					</Routes>
 				</div>

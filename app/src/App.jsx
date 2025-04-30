@@ -8,7 +8,7 @@ import EditLoginInfo from './components/auth/EditLoginInfo';
 import AddMenuItem from './components/menuitems/AddMenuItem.jsx';
 import MenuItemsPage from './components/menuitems/MenuItemsPage.jsx';
 import MenuItemPicklist from './components/menuitems/MenuItemSwap.jsx';
-import ChooseBusiness from './components/setup/ChooseBusiness.jsx';
+
 
 import {
 	BrowserRouter as Router,
@@ -39,16 +39,6 @@ function App() {
 						/>
 
 						{/* Protected Routes */}
-						<Route
-							path='/choose-business'
-							element={
-								<ProtectedRoute
-									route={'chooseBusiness'}
-									component={<ChooseBusiness />}
-								/>
-							}
-						/>
-
 						<Route
 							path='/step1'
 							element={

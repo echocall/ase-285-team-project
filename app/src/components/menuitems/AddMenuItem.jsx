@@ -173,7 +173,6 @@ const AddMenuItemForm = () => {
     // must exist out side due to trying to get all of them.
     const handleSaveAll = async () => {
         try {
-            // checks if menuID is the same as masterMenuID, if yes only puts masterMenuID into the thing.
             const menuIDs = masterMenuID === menuID ? [masterMenuID] : [masterMenuID, menuID];
             const saveRequests = panels.map(panel =>
                 axios.post('http://localhost:5000/api/menuitems/add-menu-item', {

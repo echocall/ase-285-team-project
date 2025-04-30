@@ -15,15 +15,12 @@ router.post('/signin', async (req, res) => {
 		if (!email || !password) {
 			// Email or password is missing
 			return res.status(400).json({
-				error: 'Email and password are required.',
+				error: 'Email and password are required',
+				message: 'Email and password are required.',
 			});
 		}
 
-		const filters = {
-			email: req.body.email,
-			password: req.body.password,
-		};
-		const foundUser = await User.findOne(filters);
+		const foundUser = await User.findOne({ email: email });
 
 		if (!foundUser) {
 			// Email is wrong or doesn't exist
@@ -33,12 +30,8 @@ router.post('/signin', async (req, res) => {
 			});
 		}
 
-		const hasBusiness = foundUser.business_id !== '';
-
 		// Check that the password is correct
-		const passwordMatches = await foundUser.comparePassword(
-			password
-		);
+		const passwordMatches = await foundUser.comparePassword(password);
 
 		if (!passwordMatches) {
 			// Password is wrong
@@ -51,11 +44,17 @@ router.post('/signin', async (req, res) => {
 		// Set cookies
 		cookies.setCookies(res, foundUser);
 
+		if (foundUser.business_id === 'create') {
+			// Set cookie to indicate that the user has started the setup process
+			cookies.updateCookie(res, 'beganSetup', true);
+			cookies.updateCookie(res, 'lastStepCompleted', 0);
+		}
+
 		// Set hasBusiness cookie
-		res.cookie('hasBusiness', hasBusiness, {
-			secure: true,
-			sameSite: 'None',
-		});
+		// res.cookie('hasBusiness', hasBusiness, {
+		// 	secure: true,
+		// 	sameSite: 'None',
+		// });
 
 		// Send success response w/ user's data
 		res.status(200).json(foundUser);
@@ -72,8 +71,7 @@ router.post('/signin', async (req, res) => {
 // @access  Public (no auth yet)
 router.post('/signup', async (req, res) => {
 	try {
-		const { first_name, last_name, email, password } =
-			req.body;
+		const { first_name, last_name, email, password } = req.body;
 
 		if (!first_name || !last_name || !email || !password) {
 			// One of the fields is missing
@@ -92,35 +90,10 @@ router.post('/signup', async (req, res) => {
 		if (userExists) {
 			// Email already exists in DB
 			return res.status(401).json({
-				error:
-					'An account with the provided email already exists',
-				message:
-					'An account with the provided email already exists.',
+				error: 'An account with the provided email already exists',
+				message: 'An account with the provided email already exists.',
 			});
 		}
-
-		// Creates a new business tied to user
-		const newBusiness = new Business({
-			name: `${first_name}'s Restaurant`,
-			url: '',
-			address: '',
-			allergens: [],
-			menus: [],
-		});
-		const savedBusiness = await newBusiness.save();
-
-		// Creates master menu
-		const masterMenu = new Menu({
-			title: 'Master Menu',
-			description: 'This menu will be shown to customers',
-			restaurant: savedBusiness._id,
-			menuItems: [],
-		});
-		const savedMenu = await masterMenu.save();
-
-		// That menu is added to business's menus array
-		savedBusiness.menus.push(savedMenu._id);
-		await savedBusiness.save();
 
 		// Create new User document from request body
 		const newUser = new User({
@@ -128,7 +101,8 @@ router.post('/signup', async (req, res) => {
 			last_name,
 			email,
 			password,
-			business_id: savedBusiness._id.toString(),
+			// business_id: savedBusiness._id.toString(),
+			business_id: '',
 			menu_item_layout: 0,
 			admin: true,
 		});
@@ -165,9 +139,7 @@ router.post('/logout', async (req, res) => {
 		cookies.clearAllCookies(req, res);
 
 		// Send response
-		return res
-			.status(200)
-			.json({ message: 'Logged out successfully.' });
+		return res.status(200).json({ message: 'Logged out successfully.' });
 	} catch (err) {
 		res.status(400).json({
 			error: 'Error logging out: ' + err.message,
@@ -247,9 +219,7 @@ router.post('/edit-login', async (req, res) => {
 			}
 
 			// Check that the current password is correct
-			const currentMatchesDb = await user.comparePassword(
-				currentCred
-			);
+			const currentMatchesDb = await user.comparePassword(currentCred);
 
 			if (!currentMatchesDb) {
 				// Current password is incorrect
@@ -289,5 +259,62 @@ router.post('/edit-login', async (req, res) => {
 		});
 	}
 });
+
+// @route   POST /api/auth/set-business
+// @desc    Get a user
+// @access  Public (no auth yet)
+router.post('/set-business', async (req, res) => {
+	try {
+		const { type } = req.body;
+
+		if (type === 'existing') {
+			const { business_id } = req.body;
+			const { email } = req.cookies;
+
+			if (!business_id) {
+				return res.status(400).json({
+					error: 'A business is required',
+					message: 'A business is required.',
+				});
+			}
+
+			const foundBusiness = await Business.findById(business_id);
+			if (!foundBusiness) {
+				return res.status(401).json({
+					error: 'Invalid business',
+					message: 'Invalid business.',
+				});
+			}
+
+			const updatedUser = await User.findOneAndUpdate(
+				{ email: email },
+				{ $set: { business_id: business_id, admin: false } }
+			);
+
+			if (!updatedUser) {
+				return res.status(401).json({
+					error: 'Could not add user to the business',
+					message: 'Could not add user to the business.',
+				});
+			}
+
+			// Set cookies
+			cookies.updateCookie(res, 'hasBusiness', true);
+			cookies.updateCookie(res, 'isAdmin', updatedUser.admin);
+
+			// Include business_id in response
+			res.status(200).json({
+				message: `You have been added to ${foundBusiness.name} successfully.`,
+				business_id: foundBusiness._id
+			});
+		}
+	} catch (err) {
+		res.status(500).json({
+			error: 'An error occurred: ' + err.message,
+			message: 'An error occurred.',
+		});
+	}
+});
+
 
 module.exports = router;

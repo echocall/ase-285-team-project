@@ -5,6 +5,7 @@ import '../../css/auth.scss';
 import GetPasswordField from './Password';
 import ErrorMessage from '../ErrorMessage';
 import format from '../../assets/formValidation.js';
+import getCookie from '../../assets/cookies.jsx';
 
 function GetAuthForm({ formName }) {
 	const navigate = useNavigate();
@@ -12,7 +13,6 @@ function GetAuthForm({ formName }) {
 		'Something went wrong'
 	);
 	const [showError, setShowError] = useState(false);
-	useState(false);
 
 	const checkCredentials = async (event) => {
 		event.preventDefault();
@@ -62,28 +62,21 @@ function GetAuthForm({ formName }) {
 			menu_item_layout: 0,
 			admin: true,
 		};
-
+	
 		try {
-			const response = await fetch(
-				'http://localhost:5000/api/auth/signup',
-				{
-					method: 'POST',
-					credentials: 'include',
-					headers: {
-						'Content-Type': 'application/json',
-					},
-					body: JSON.stringify(formData),
-				}
-			);
+			const response = await fetch('http://localhost:5000/api/auth/signup', {
+				method: 'POST',
+				credentials: 'include',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify(formData),
+			});
 			const result = await response.json();
-
+	
 			if (response.ok) {
-				const user = await response.json();
-				localStorage.setItem(
-					'business_id',
-					user.business_id
-				);
-				navigate('/step1'); // Redirect on success
+				localStorage.setItem('justSignedUp', 'true');
+				navigate('/choose-business'); 
 			} else {
 				setMessage(result.message);
 				setShowError(true);
@@ -92,6 +85,7 @@ function GetAuthForm({ formName }) {
 			console.error('Error: ', err.message);
 		}
 	};
+	
 
 	// Logs a user in
 	const logIn = async (form) => {
@@ -99,31 +93,27 @@ function GetAuthForm({ formName }) {
 			email: form.email.value,
 			password: form.password.value,
 		};
-
+	
 		try {
-			const response = await fetch(
-				'http://localhost:5000/api/auth/signin',
-				{
-					method: 'POST',
-					credentials: 'include',
-					headers: {
-						'Content-Type': 'application/json',
-					},
-					body: JSON.stringify(formData),
-				}
-			);
+			const response = await fetch('http://localhost:5000/api/auth/signin', {
+				method: 'POST',
+				credentials: 'include',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify(formData),
+			});
 			const result = await response.json();
-
+	
 			if (response.ok) {
-				const result = await response.json();
-				console.log(result.message);
-				localStorage.setItem(
-					'business_id',
-					result.business_id
-				);
-				console.log(result.email);
-				console.log('result.cookies:', document.cookie);
-				navigate('/dashboard');
+				// Store business_id if it exists
+				if (result.business_id) {
+					localStorage.setItem('business_id', result.business_id);
+				}
+	
+				if (getCookie('hasBusiness') === 'false') {
+					navigate('/choose-business');
+				} else {
+					navigate('/dashboard');
+				}
 			} else {
 				setMessage(result.message);
 				setShowError(true);
@@ -132,6 +122,7 @@ function GetAuthForm({ formName }) {
 			console.error('Error: ', err.message);
 		}
 	};
+	
 
 	return (
 		<form

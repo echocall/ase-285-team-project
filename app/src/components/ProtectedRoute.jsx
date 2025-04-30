@@ -25,6 +25,10 @@ function ProtectedRoute({ component, route, admin }) {
 
 	/* The following statements only execute if the user is logged in. */
 
+	if (route === 'chooseBusiness') {
+		return component;
+	}
+
 	// Prevents user from accessing sign in/up page if they're logged in
 	if (route === 'signInUp') {
 		// Redirect to dashboard
@@ -47,9 +51,11 @@ function ProtectedRoute({ component, route, admin }) {
 		);
 	}
 
-	// Prevents users from accessing setup pages if they are associated w/ a business
-	if (route === 'setup' && hasBusiness) {
-		// Redirect to dashboard
+	// Prevents users from accessing setup pages if they are associated with a business,
+	// unless they have just signed up and are still completing setup
+	const justSignedUp = localStorage.getItem('justSignedUp') === 'true';
+
+	if (route === 'setup' && hasBusiness && !justSignedUp) {
 		return (
 			<Navigate
 				to='/dashboard'
@@ -63,7 +69,7 @@ function ProtectedRoute({ component, route, admin }) {
 		// Redirect to setup page
 		return (
 			<Navigate
-				to='/step1'
+				to='/choose-business'
 				replace
 			/>
 		);

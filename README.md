@@ -144,6 +144,10 @@ This will install express (for backend functionality) and all of the dependencie
 - axios
 - web-vitals
 - Testing libraries (e.g. `@testing-library/react`)
+- bcrypt
+- dotenv
+- cookie-parser
+- cors
 
 ### Set Up Environment Variables
 

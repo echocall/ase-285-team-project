@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../schemas/User');
+const cookies = require('../utils/cookies');
 
 // Returns the business_id of a user
 const getBusinessId = async (email) => {
@@ -114,6 +115,11 @@ router.post('/change-admin-status', async (req, res) => {
 						'At least one user must be an admin. Promote another user to admin before demoting this user.',
 				});
 			}
+
+			return res.status(400).json({
+				error: 'unknown error',
+				message: 'unknown error',
+			});
 		}
 
 		if (action === 'promote') {
@@ -137,10 +143,17 @@ router.post('/change-admin-status', async (req, res) => {
 		}
 
 		// Set success repsonse message
-		const message =
+		var message =
 			action === 'promote'
 				? 'Promoted user to admin successfully.'
 				: 'Demoted admin to user successfully.';
+
+		// Check if user is demoting theirself
+		if (targetEmail === req.cookies.email) {
+			// Update admin cookie
+			cookies.updateCookie(res, 'isAdmin', admin);
+			message = 'You have been demoted to user. Redirecting to your dashboard.';
+		}
 
 		// Send success response
 		return res.status(200).json({ message: message });

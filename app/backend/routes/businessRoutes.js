@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const Business = require('../schemas/Business');
-const Menu = require('../schemas/Menu');
-const mongoose = require('mongoose');
+const User = require('../schemas/User');
+const cookies = require('../utils/cookies');
 
 // @route   GET /api/businesses/
 // @desc    Get a list of all businesses
@@ -58,11 +58,20 @@ router.post('/', async (req, res) => {
 	try {
 		const { name, url, address, allergens = [], diets = [] } = req.body;
 
-		const existing = await Business.findOne({ name: name.trim() });
 		const unnamed = name === 'New Business';
-		if (existing && !unnamed) {
-			return res.status(400).json({ error: 'Business name already exists.' });
+		var existing;
+
+		if (!unnamed && name !== '') {
+			existing = await Business.findOne({ name: name.trim() });
 		}
+
+		if (existing && !unnamed) {
+			return res.status(400).json({
+				error: 'Business name already exists',
+				message: 'Business name already exists.',
+			});
+		}
+		console.log('about to create new business');
 
 		const newBusiness = new Business({
 			name: name.trim(),
@@ -74,8 +83,31 @@ router.post('/', async (req, res) => {
 		});
 
 		const savedBusiness = await newBusiness.save();
-		res.status(201).json(savedBusiness);
+
+		if (!savedBusiness) {
+			return res.status(400).json({
+				error: 'Error creating business',
+				message: 'Error creating business.',
+			});
+		}
+
+		const email = req.cookies.email;
+		const user = await User.findOne({ email: email });
+		console.log('user:', user);
+
+		if (!user) {
+			return res.status(400).json({
+				error: 'Error associating new business with user',
+				message: 'Error associating new business with user.',
+			});
+		}
+		console.log('user.admin:', user.admin);
+		cookies.updateCookie(res, 'isAdmin', user.admin);
+		console.log('admin cookie set (supposedly)');
+
+		return res.status(201).json(savedBusiness);
 	} catch (err) {
+		console.error('Caught error:', err);
 		res.status(400).json({
 			error: 'Error creating business: ' + err.message,
 		});

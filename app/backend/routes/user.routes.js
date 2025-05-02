@@ -277,53 +277,72 @@ router.post('/edit-login', async (req, res) => {
 // @access  Public (no auth yet)
 router.post('/set-business', async (req, res) => {
 	try {
-		const { type } = req.body;
+		const { type, business_id } = req.body;
+		const { email } = req.cookies;
 
-		if (type)
+		if (!business_id) {
+			return res.status(400).json({
+				error: 'A business is required',
+				message: 'A business is required.',
+			});
+		}
+
+		const foundBusiness = await Business.findById(business_id);
+
+		if (!foundBusiness) {
+			return res.status(401).json({
+				error: 'Invalid business',
+				message: 'Invalid business.',
+			});
+		}
+
+		var updatedUser;
+
+		try {
 			if (type === 'existing') {
-				const { business_id } = req.body;
-				const { email } = req.cookies;
-
-				if (!business_id) {
-					return res.status(400).json({
-						error: 'A business is required',
-						message: 'A business is required.',
-					});
-				}
-
-				const foundBusiness = await Business.findById(business_id);
-				if (!foundBusiness) {
-					return res.status(401).json({
-						error: 'Invalid business',
-						message: 'Invalid business.',
-					});
-				}
-
-				const updatedUser = await User.findOneAndUpdate(
+				updatedUser = await User.findOneAndUpdate(
 					{ email: email },
 					{ $set: { business_id: business_id, admin: false } }
 				);
-
-				if (!updatedUser) {
-					return res.status(401).json({
-						error: 'Could not add user to the business',
-						message: 'Could not add user to the business.',
-					});
-				}
-
-				// Set cookies
-				cookies.updateCookie(res, 'hasBusiness', true);
-				cookies.updateCookie(res, 'isAdmin', updatedUser.admin);
-
-				// Include business_id in response
-				res.status(200).json({
-					message: `You have been added to ${foundBusiness.name} successfully.`,
-					business_id: foundBusiness._id,
-				});
+			} else if (type === 'new') {
+				updatedUser = await User.findOneAndUpdate(
+					{ email: email },
+					{ $set: { business_id: business_id, admin: true } },
+					{ new: true }
+				);
 			}
+		} catch (err) {
+			console.error('Error updating user:', err);
+		}
+
+		if (!updatedUser) {
+			return res.status(401).json({
+				error: 'Could not add user to the business',
+				message: 'Could not add user to the business.',
+			});
+		}
+
+		// Set cookies
+		if (type === 'existing') {
+			cookies.updateCookie(res, 'hasBusiness', true);
+			cookies.updateCookie(res, 'isAdmin', false);
+		} else if (type === 'new') {
+			cookies.updateCookie(res, 'hasBusiness', false);
+			cookies.updateCookie(res, 'isAdmin', updatedUser.admin);
+		}
+
+		if (type === 'existing') {
+			// Include business_id in response
+			res.status(200).json({
+				message: `You have been added to ${foundBusiness.name} successfully.`,
+				business_id: foundBusiness._id,
+			});
+		} else if (type === 'new') {
+			res.status(200).json({ message: 'Business template created.' });
+		}
 	} catch (err) {
 		res.status(500).json({
-			error: 'An error occurred: ' + err.message,
+			error: 'An error occurred: ' + err,
 			message: 'An error occurred.',
 		});
 	}

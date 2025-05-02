@@ -49,10 +49,6 @@ const columns = [
 		header: 'User Email',
 		muiTableHeadCellProps: {
 			textAlign: 'left',
-			sx: {
-				// backgroundColor: 'lightblue',
-				// fontWeight: 'bold',
-			}, // Header cell styles
 		},
 		textAlign: 'left',
 		muiTableBodyCellProps: {
@@ -68,12 +64,9 @@ const columns = [
 const AdminTable = () => {
 	const navigate = useNavigate();
 	const [data, setData] = useState([]);
-	const [message, setMessage] = useState(
-		'Something went wrong.'
-	);
+	const [message, setMessage] = useState('Something went wrong.');
 	const [showError, setShowError] = useState(false);
-	const [showConfirmation, setShowConfirmation] =
-		useState(false);
+	const [showConfirmation, setShowConfirmation] = useState(false);
 
 	// Get a list of users associated w/ the user's business
 	React.useEffect(() => {
@@ -94,10 +87,7 @@ const AdminTable = () => {
 					const users = await response.json();
 					setData(users);
 				} else {
-					console.error(
-						'Error: response not ok:',
-						response.error
-					);
+					console.error('Error: response not ok:', response.error);
 				}
 			} catch (err) {
 				console.error('Error: ', err.message);
@@ -126,20 +116,13 @@ const AdminTable = () => {
 					body: JSON.stringify(data),
 				}
 			);
+			const result = await response.json();
+
+			setMessage(result.message);
 
 			if (response.ok) {
-				setMessage(
-					action === 'promote'
-						? 'Promoted user to admin successfully.'
-						: 'Demoted admin to user successfully.'
-				);
 				setShowConfirmation(true);
 			} else {
-				setMessage(
-					action === 'promote'
-						? `There was an error promoting user to admin.`
-						: `There was an error demoting admin to user.`
-				);
 				setShowError(true);
 			}
 		} catch (err) {
@@ -161,14 +144,13 @@ const AdminTable = () => {
 					body: JSON.stringify({ email: targetEmail }),
 				}
 			);
+			const result = await response.json();
+
+			setMessage(result.message);
 
 			if (response.ok) {
-				setMessage(`Removed user access successfully.`);
 				setShowConfirmation(true);
 			} else {
-				setMessage(
-					`There was an error removing user access.`
-				);
 				setShowError(true);
 			}
 		} catch (err) {
@@ -184,9 +166,7 @@ const AdminTable = () => {
 					<i title='Promote user to admin'>
 						<img
 							src={promoteAdminIcon}
-							onClick={() =>
-								changeAdminStatus('promote', email)
-							}
+							onClick={() => changeAdminStatus('promote', email)}
 							alt='Promote user icon'
 							className='admin-table-icon'
 						/>
@@ -197,9 +177,7 @@ const AdminTable = () => {
 					<i title='Demote admin to user'>
 						<img
 							src={demoteAdminIcon}
-							onClick={() =>
-								changeAdminStatus('demote', email)
-							}
+							onClick={() => changeAdminStatus('demote', email)}
 							alt='Demote admin icon'
 							className='admin-table-icon'
 						/>
@@ -230,9 +208,7 @@ const AdminTable = () => {
 					<img
 						src={removeUserIcon}
 						alt='Remove user access icon'
-						onClick={() =>
-							removeUserAccess(row.original.email)
-						}
+						onClick={() => removeUserAccess(row.original.email)}
 						className='admin-table-icon'
 					/>
 				</i>
@@ -254,7 +230,8 @@ const AdminTable = () => {
 			{showError ? (
 				<ErrorMessage
 					message={message}
-					destination={0}
+					destination={false}
+					onClose={() => setShowError(false)}
 				/>
 			) : (
 				<></>
@@ -269,9 +246,7 @@ const AdminTable = () => {
 			></Box>
 
 			<TableContainer>
-				<Table
-					sx={{ fontFamily: 'Josefin Sans, sans-serif' }}
-				>
+				<Table sx={{ fontFamily: 'Josefin Sans, sans-serif' }}>
 					<TableHead>
 						{table.getHeaderGroups().map((headerGroup) => (
 							<TableRow key={headerGroup.id}>
@@ -295,30 +270,26 @@ const AdminTable = () => {
 						))}
 					</TableHead>
 					<TableBody>
-						{table
-							.getRowModel()
-							.rows.map((row, rowIndex) => (
-								<TableRow
-									key={row.id}
-									selected={row.getIsSelected()}
-								>
-									{row
-										.getVisibleCells()
-										.map((cell, _columnIndex) => (
-											<TableCell
-												align='left'
-												variant='body'
-												key={cell.id}
-											>
-												<MRT_TableBodyCellValue
-													cell={cell}
-													table={table}
-													staticRowIndex={rowIndex} //just for batch row selection to work
-												/>
-											</TableCell>
-										))}
-								</TableRow>
-							))}
+						{table.getRowModel().rows.map((row, rowIndex) => (
+							<TableRow
+								key={row.id}
+								selected={row.getIsSelected()}
+							>
+								{row.getVisibleCells().map((cell, _columnIndex) => (
+									<TableCell
+										align='left'
+										variant='body'
+										key={cell.id}
+									>
+										<MRT_TableBodyCellValue
+											cell={cell}
+											table={table}
+											staticRowIndex={rowIndex} //just for batch row selection to work
+										/>
+									</TableCell>
+								))}
+							</TableRow>
+						))}
 					</TableBody>
 				</Table>
 			</TableContainer>

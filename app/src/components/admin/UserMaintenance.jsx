@@ -30,12 +30,13 @@ function UserMaintenance() {
 					body: JSON.stringify(data),
 				}
 			);
+			const result = await response.json();
+
+			setMessage(result.message);
 
 			if (response.ok) {
-				setMessage('Added user access successfully.');
 				setShowConfirmation(true);
 			} else {
-				setMessage(`There was an error adding user access.`);
 				setShowError(true);
 			}
 		} catch (err) {
@@ -57,13 +58,14 @@ function UserMaintenance() {
 			{showError ? (
 				<ErrorMessage
 					message={message}
-					destination={0}
+					destination={false}
+					onClose={() => setShowError(false)}
 				/>
 			) : (
 				<></>
 			)}
 
-			<h1>User Maintenance</h1>
+			<h1 className='admin-header'>User Maintenance</h1>
 
 			<div className='user-maintenance-container'>
 				<form

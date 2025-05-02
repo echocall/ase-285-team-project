@@ -46,8 +46,7 @@ Manages restaurant menus, items, and dietary/allergen filtering.
 | --- | --- | --- | --- |
 | **`menus`** | **`Array`** | **`MenuDashboard`** | Stores menu list |
 | **`menuItems`** | **`Array`** | **`MenuItemsPage`** | Tracks items in current menu |
-| **`selectedAllergens`** | **`Array`** | **`FilterPanel`** | Filters items by allergens |
-| **`selectedDiets`** | **`Array`** | **`FilterPanel`** | Filters items by diets |
+
 
 ---
 
@@ -67,7 +66,6 @@ Manages restaurant menus, items, and dietary/allergen filtering.
 | --- | --- | --- |
 | **`MenuDashboard.css`** | Grid layout for menus | **`MenuDashboard`** |
 | **`MenuCard.css`** | Item cards | **`MenuItemCard`** |
-| **`FilterPanel.css`** | Checkbox lists | **`FilterPanel`** |
 
 ---
 

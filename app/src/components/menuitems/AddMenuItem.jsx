@@ -44,12 +44,16 @@ const CollapsiblePanel = ({ header, formData, onFormChange, onAddPanel, masterMe
 
     const handleAllergenChange = (event) => {
         const allergenValue = event.target.value;
-
+        let updatedAllergens;
+    
         if (event.target.checked) {
-            setSelectedAllergens(prev => [...prev, allergenValue]);
+            updatedAllergens = [...selectedAllergens, allergenValue];
         } else {
-            setSelectedAllergens(prev => prev.filter(a => a !== allergenValue));
+            updatedAllergens = selectedAllergens.filter(a => a !== allergenValue);
         }
+    
+        setSelectedAllergens(updatedAllergens);
+        onFormChange({ ...formData, selectedAllergens: updatedAllergens }); // <-- Sync it here
     };
 
     const getAllergenLabels = () => {

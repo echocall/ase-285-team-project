@@ -180,7 +180,7 @@ const MenuItemPicklist = () => {
       const parentMenu = menus.find(menu => menu.isSelected);
     
       if (!parentMenu) {
-        alert("Please select parent menu to delete from first.");
+        alert("Please select parent menu to remove item from first.");
         return;
       }
     

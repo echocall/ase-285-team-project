@@ -219,7 +219,7 @@ const MenuItemPicklist = () => {
         try {
           const saveRequests = menuItems.map(menuItem => {
             console.log('Saving item:', menuItem._id); 
-            return axios.put('http://localhost:5000/api/menuitems/swap-menu', menuItem);
+            return axios.put(`http://localhost:5000/api/menuitems/swap-menu/${menuItem._id}`, menuItem);
           });
           await Promise.all(saveRequests);
           alert('All items saved successfully!');

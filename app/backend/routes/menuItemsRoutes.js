@@ -223,7 +223,8 @@ router.get('/swap-menu', async (req, res) => {
 // @access  Public (no auth yet)
 router.put('/swap-menu/:id', async (req, res) => {
     try {
-      const { id, name, description, ingredients, allergens, menuIDs } = req.body;
+        const { id } = req.params;
+      const { name, description, ingredients, allergens, menuIDs } = req.body;
       console.log("incoming body", req.body)
   
       if (!id) {

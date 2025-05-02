@@ -3,7 +3,7 @@ const { Schema } = mongoose;
 
 class MenuItem {
   constructor(name, ingredients=[], allergens = [], description = '', menuIDs = []) {
-    this.name = title;
+    this.name = name;
     this.ingredients = ingredients;
     this.description = description;
     this.allergens = allergens;

@@ -65,7 +65,7 @@ function UserMaintenance() {
 				<></>
 			)}
 
-			<h1>User Maintenance</h1>
+			<h1 className='admin-header'>User Maintenance</h1>
 
 			<div className='user-maintenance-container'>
 				<form

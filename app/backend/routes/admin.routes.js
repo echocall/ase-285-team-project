@@ -201,7 +201,6 @@ router.post('/remove-user-access', async (req, res) => {
 			{ $set: { business_id: '', admin: admin } },
 			{ new: true }
 		);
-		console.log('admin:', admin);
 
 		if (updatedUser.business_id !== '' || updatedUser.admin !== admin) {
 			// User's business_id was not removed from the DB
@@ -261,7 +260,6 @@ router.post('/add-user-access', async (req, res) => {
 		const foundUser = await User.findOne({ email: targetEmail });
 
 		if (!foundUser) {
-			console.log('foundUser:', foundUser);
 			return res.status(400).json({
 				error: 'User does not exist',
 				message: 'User does not exist.',

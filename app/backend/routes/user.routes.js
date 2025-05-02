@@ -3,7 +3,6 @@ const router = express.Router();
 const User = require('../schemas/User');
 const cookies = require('../utils/cookies');
 const Business = require('../schemas/Business');
-const Menu = require('../schemas/Menu');
 
 // @route   POST /api/auth/signin
 // @desc    Get a user

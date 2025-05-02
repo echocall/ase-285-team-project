@@ -64,12 +64,13 @@ const MenuItemPicklist = () => {
         setSearchTerms((prev) => ({ ...prev, [menuID]: value }));
     };
 
-    const filteredMenuItems = (menu, searchTerm) => {
+    /* const filteredMenuItems = (menu, searchTerm) => {
         return menuItems.filter(item => 
           item.menuIDs.includes(menu._id) &&
           item.name.toLowerCase().includes(searchTerm.toLowerCase())
         );
       };
+    */
 
       // menuItem checkbox changes
       const handleCheckboxChange = (compositeKey) => {
@@ -218,7 +219,6 @@ const MenuItemPicklist = () => {
     const handleSave = async () => {
         try {
           const saveRequests = menuItems.map(menuItem => {
-            console.log('Saving item:', menuItem._id); 
             return axios.put(`http://localhost:5000/api/menuitems/swap-menu/${menuItem._id}`, menuItem);
           });
           await Promise.all(saveRequests);

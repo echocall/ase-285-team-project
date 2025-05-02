@@ -3,12 +3,12 @@ const router = express.Router();
 const MenuItem = require('../schemas/MenuItem');
 const Menu = require('../schemas/Menu')
 const mongoose = require('mongoose');
-// const { Menu } = require('@mui/material');
+
 //
 // MenuItems.jsx
 //
 
-// @route GET /api/menuitems/menu/:menuname
+// @route GET /api/menuitems/menu/:menuname&:businessID
 // @desc Get menu by menuTitle
 // @access Public
 router.get('/menu/', async (req, res) => {
@@ -189,36 +189,7 @@ router.get('/menuswap-items', async (req, res) => {
   }
   });
 
-// @route   GET /api/menuitem/swap-menu
-// @desc    Get all menu items
-// @access  Public (no auth yet)
-router.get('/swap-menu', async (req, res) => {
-  try {
-    let menuitems = await MenuItem.find();
-
-    // If no menu items exist, create a default one
-    if (menuitems.length === 0) {
-      const menuItem = new MenuItem({
-        name: 'Example Menu Item',
-        description: 'This is shown to customers',
-        ingredients: 'Cheese, bread, broccoli',
-        allergens: ['Dairy', 'Wheat'],
-        menuIDs: ['680a79fa3b98428dcf348668']
-      });
-
-      const saved = await menuItem.save();
-      menuitems = [saved];
-    }
-
-    res.json(menuitems || []);
-  } catch (err) {
-    console.error('Error fetching menu items:', err);
-    res.status(500).json({ error: 'Could not fetch menu items' });
-  }
-});
-
-
-// @route   Put /api/menuitem/swap-menu
+// @route   PUT /api/menuitem/swap-menu
 // @desc    Update the existing menuItems
 // @access  Public (no auth yet)
 router.put('/swap-menu/:id', async (req, res) => {

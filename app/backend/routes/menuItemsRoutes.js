@@ -225,7 +225,6 @@ router.put('/swap-menu/:id', async (req, res) => {
     try {
         const { id } = req.params;
       const { name, description, ingredients, allergens, menuIDs } = req.body;
-      console.log("incoming body", req.body)
   
       if (!id) {
         return res.status(400).json({ error: 'Menu item ID is required' });

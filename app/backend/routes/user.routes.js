@@ -44,17 +44,22 @@ router.post('/signin', async (req, res) => {
 		// Set cookies
 		cookies.setCookies(res, foundUser);
 
-		if (foundUser.business_id === 'create') {
-			// Set cookie to indicate that the user has started the setup process
-			cookies.updateCookie(res, 'beganSetup', true);
-			cookies.updateCookie(res, 'lastStepCompleted', 0);
+		// Get business name
+		const foundBusiness = await Business.findById(foundUser.business_id, {
+			name: 1,
+		});
+
+		if (!foundBusiness) {
+			// Business does not exist
+			cookies.updateCookie(res, 'hasBusiness', false);
+			return res
+				.status(401)
+				.json({ error: 'Business not found', message: 'Business not found.' });
 		}
 
-		// Set hasBusiness cookie
-		// res.cookie('hasBusiness', hasBusiness, {
-		// 	secure: true,
-		// 	sameSite: 'None',
-		// });
+		if (foundBusiness.name === 'New Business') {
+			cookies.updateCookie(res, 'hasBusiness', false);
+		}
 
 		// Send success response w/ user's data
 		res.status(200).json(foundUser);
@@ -266,47 +271,48 @@ router.post('/set-business', async (req, res) => {
 	try {
 		const { type } = req.body;
 
-		if (type === 'existing') {
-			const { business_id } = req.body;
-			const { email } = req.cookies;
+		if (type)
+			if (type === 'existing') {
+				const { business_id } = req.body;
+				const { email } = req.cookies;
 
-			if (!business_id) {
-				return res.status(400).json({
-					error: 'A business is required',
-					message: 'A business is required.',
+				if (!business_id) {
+					return res.status(400).json({
+						error: 'A business is required',
+						message: 'A business is required.',
+					});
+				}
+
+				const foundBusiness = await Business.findById(business_id);
+				if (!foundBusiness) {
+					return res.status(401).json({
+						error: 'Invalid business',
+						message: 'Invalid business.',
+					});
+				}
+
+				const updatedUser = await User.findOneAndUpdate(
+					{ email: email },
+					{ $set: { business_id: business_id, admin: false } }
+				);
+
+				if (!updatedUser) {
+					return res.status(401).json({
+						error: 'Could not add user to the business',
+						message: 'Could not add user to the business.',
+					});
+				}
+
+				// Set cookies
+				cookies.updateCookie(res, 'hasBusiness', true);
+				cookies.updateCookie(res, 'isAdmin', updatedUser.admin);
+
+				// Include business_id in response
+				res.status(200).json({
+					message: `You have been added to ${foundBusiness.name} successfully.`,
+					business_id: foundBusiness._id,
 				});
 			}
-
-			const foundBusiness = await Business.findById(business_id);
-			if (!foundBusiness) {
-				return res.status(401).json({
-					error: 'Invalid business',
-					message: 'Invalid business.',
-				});
-			}
-
-			const updatedUser = await User.findOneAndUpdate(
-				{ email: email },
-				{ $set: { business_id: business_id, admin: false } }
-			);
-
-			if (!updatedUser) {
-				return res.status(401).json({
-					error: 'Could not add user to the business',
-					message: 'Could not add user to the business.',
-				});
-			}
-
-			// Set cookies
-			cookies.updateCookie(res, 'hasBusiness', true);
-			cookies.updateCookie(res, 'isAdmin', updatedUser.admin);
-
-			// Include business_id in response
-			res.status(200).json({
-				message: `You have been added to ${foundBusiness.name} successfully.`,
-				business_id: foundBusiness._id,
-			});
-		}
 	} catch (err) {
 		res.status(500).json({
 			error: 'An error occurred: ' + err.message,

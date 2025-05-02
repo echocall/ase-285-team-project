@@ -8,6 +8,33 @@ const mongoose = require('mongoose');
 // MenuItems.jsx
 //
 
+// @route GET /api/menuitems/menu/:menuname
+// @desc Get menu by menuTitle
+// @access Public
+router.get('/menu/', async (req, res) => {
+    try {
+        const { encodedMenuName, businessID } = req.query;
+
+        if (!encodedMenuName || !businessID) {
+            return res.status(400).json({ error: 'Both encodedMenuName and businessID are required' });
+        }
+        // decript from safe for url formate
+        const menuName = decodeURIComponent(encodedMenuName);
+
+        const filter = {
+            title: menuName,
+            restaurant: businessID, 
+        };
+        // get only the menu
+        const menu = await Menu.findOne(filter);
+
+        res.json(menu || []);
+    } catch (err) {
+    console.error('Error fetching menu:', err);
+    res.status(500).json({ error: 'Could not fetch menu' });
+    }
+});
+
 // @route GET /api/menuitems
 // @desc Get menu items by menuID (optional)
 // @access Public
@@ -30,6 +57,7 @@ router.get('/', async (req, res) => {
   }
 });
   
+
 // @route   PUT api/menuitems
 // @desc    Edit an existing menu item
 // @access  Public (no auth yet)
@@ -110,7 +138,7 @@ router.post('/add-menu-item', async (req, res) => {
 /// MenuItemSwap.jsx
 ///
 // @route   GET /api/menuitems/menuswap-menus
-// @desc    Get all menus for restraunt id
+// @desc    Get all menus for business id
 // @access  Public (no auth yet)
 router.get('/menuswap-menus', async (req, res) => {
   try {
@@ -130,6 +158,7 @@ router.get('/menuswap-menus', async (req, res) => {
       if (b.title === 'Master Menu') return 1;
       return 0;
     });
+
     // Return the menus
     res.json(menus);
   } catch (err) {
@@ -138,7 +167,7 @@ router.get('/menuswap-menus', async (req, res) => {
   }
 });
 
-// @route   GET /api/menuitem/menuswap-items
+// @route   GET /api/menuitems/menuswap-items
 // @desc    Get all menu items associated with Master Menu ID
 // @access  Public (no auth yet)
 router.get('/menuswap-items', async (req, res) => {
@@ -151,9 +180,9 @@ router.get('/menuswap-items', async (req, res) => {
       filter = { menuIDs: menuID };  
     }
 	  // Get the menu items 
-    const menuItems = await MenuItems.find(filter);
+    const menuItems = await MenuItem.find(filter);
 
-    res.json(menuitems || []);
+    res.json(menuItems || []);
   } catch (err) {
     console.error('Error fetching menu items:', err);
     res.status(500).json({ error: 'Could not fetch menu items' });
@@ -195,7 +224,7 @@ router.get('/swap-menu', async (req, res) => {
 router.put('/swap-menu', async (req, res) => {
   try {
     const { name, description, ingredients, allergens, menuIDs } = req.body;
-
+    console.log(req.body)
     // Ensure the ID is provided
     if (!id) {
       return res.status(400).json({ error: 'Menu item ID is required' });

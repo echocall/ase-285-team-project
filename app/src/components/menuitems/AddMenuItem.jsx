@@ -3,12 +3,16 @@ import '../../css/styles.css'
 import AllergenList from '../auth/AllergenList';
 import { FaAngleDown, FaAngleRight } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import axios from 'axios';
 
 // Collapsible Panel Component
 const CollapsiblePanel = ({ header, formData, onFormChange, onAddPanel, masterMenuID }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [selectedAllergens, setSelectedAllergens] = useState([]);
+    const location = useLocation();
+    const menuID = location.state?.menuID; 
+    const navigate = useNavigate();
 
     const togglePanel = () => {
         setIsOpen(!isOpen);
@@ -22,7 +26,6 @@ const CollapsiblePanel = ({ header, formData, onFormChange, onAddPanel, masterMe
     // Save single menuItem
     const handleSave = async () => {
         try {
-            const menuID = localStorage.getItem('menu_id');
             const menuIDs = masterMenuID === menuID ? [masterMenuID] : [masterMenuID, menuID];
             const response = await axios.post('http://localhost:5000/api/menuitems/add-menu-item', {
                 name: formData.name,
@@ -146,11 +149,14 @@ const CollapsiblePanel = ({ header, formData, onFormChange, onAddPanel, masterMe
 // The main form
 const AddMenuItemForm = () => {
     const [masterMenuID, setMasterMenuID] = useState('');
-    const [menuID, setMenuID] = useState('');
-    const[routeID, setRouteID] = useState('');
+    const[routeName, setRouteName] = useState('');
     const [panels, setPanels] = useState([
         { name: '', ingredients: '', description: '', selectedAllergens: [], menuIDs: [] }
     ]);
+    const location = useLocation();
+    const menuID = location.state?.menuID;  
+    const menuTitle = location.state?.menuTitle
+    const navigate = useNavigate();
 
     // Call the functions to pull in the menus and menu items.
     useEffect(() => {
@@ -160,19 +166,19 @@ const AddMenuItemForm = () => {
         if (storedMasterID) {
             setMasterMenuID(storedMasterID);
         }
-        const storedMenuID = localStorage.getItem('menu_id');
-        if (storedMenuID) {
-            setMenuID(storedMenuID)
+
+        if (menuID) {
+            setRouteName(menuTitle);
+        } else {
+            console.warn("No menuID found in route state.");
         }
-        
-        const routeMenuID = masterMenuID === menuID ? [masterMenuID] : [masterMenuID, menuID];
-        setRouteID(routeMenuID)
-    }, []);
+    }, [menuID, menuTitle]);
 
     // Save all menuItems
     // must exist out side due to trying to get all of them.
     const handleSaveAll = async () => {
         try {
+            // Calculating what to save into the menuItems
             const menuIDs = masterMenuID === menuID ? [masterMenuID] : [masterMenuID, menuID];
             const saveRequests = panels.map(panel =>
                 axios.post('http://localhost:5000/api/menuitems/add-menu-item', {
@@ -190,23 +196,33 @@ const AddMenuItemForm = () => {
           console.error('Error saving items:', err);
           alert('Failed to save all items.');
         }
+
+        // refresh the page.
+        navigate(0, {
+			state: { menuID: menuID,
+                menuTitle: menuTitle
+             },
+		});
+
     };
 
+    // Loading in the panels
     const handleAddPanel = () => {
-        setPanels([...panels, {}]); // Adds a new panel to the array
+        setPanels([...panels, {}]); 
     };
 
+    
     const handlePanelChange = (index, newFormData) => {
         setPanels(prevPanels =>
           prevPanels.map((panel, i) => i === index ? newFormData : panel)
         );
       };
 
-    // For buttons
-    const navigate = useNavigate();
+    // Go back to menu
     const toMenu = (event) => {
-        event.preventDefault();
-        navigate(`/menuitems/${routeID}`);
+		navigate('/menuitems', {
+			state: { menuTitle: routeName }, 
+		});
     };
 
     return (

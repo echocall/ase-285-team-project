@@ -126,6 +126,7 @@ const MenuItemsPage = () => {
                 <MenuItemPanel
                 key={item._id}
                 item={item}
+                menuID={fetchedMenu._id}
                 onSave={handleSave}
                 onDelete={handleDelete}
                 />

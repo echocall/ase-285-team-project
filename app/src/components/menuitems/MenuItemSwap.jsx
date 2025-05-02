@@ -64,13 +64,12 @@ const MenuItemPicklist = () => {
         setSearchTerms((prev) => ({ ...prev, [menuID]: value }));
     };
 
-    /* const filteredMenuItems = (menu, searchTerm) => {
+    const filteredMenuItems = (menu, searchTerm) => {
         return menuItems.filter(item => 
           item.menuIDs.includes(menu._id) &&
           item.name.toLowerCase().includes(searchTerm.toLowerCase())
         );
       };
-    */
 
       // menuItem checkbox changes
       const handleCheckboxChange = (compositeKey) => {
@@ -185,7 +184,7 @@ const MenuItemPicklist = () => {
         return;
       }
     
-      if (parentMenu._id === "0") {
+      if (parentMenu._id === masterMenuID) {
         alert("Cannot remove from Master Menu.");
         return;
       }

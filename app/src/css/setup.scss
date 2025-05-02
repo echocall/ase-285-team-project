@@ -301,4 +301,8 @@ ul {
 	&:not(:has(.back-btn, .cancel-btn)) {
 		justify-content: right;
 	}
+
+	.back-btn {
+		position: relative;
+	}
 }

@@ -3,11 +3,13 @@ import AdminTable from './AdminTable';
 import GetConfirmationMessage from '../ConfirmationMessage';
 import ErrorMessage from '../ErrorMessage';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 function UserMaintenance() {
 	const [message, setMessage] = useState('Something went wrong');
 	const [showError, setShowError] = useState(false);
 	const [showConfirmation, setShowConfirmation] = useState(false);
+	const navigate = useNavigate();
 
 	const addUserAccess = async (event) => {
 		event.preventDefault();
@@ -65,7 +67,17 @@ function UserMaintenance() {
 				<></>
 			)}
 
-			<h1 className='admin-header'>User Maintenance</h1>
+			<h1 className='admin-header'>
+				<button
+					onClick={() => {
+						navigate('/dashboard');
+					}}
+					className='button gray-btn back-btn'
+				>
+					Back to Dashboard
+				</button>
+				User Maintenance
+			</h1>
 
 			<div className='user-maintenance-container'>
 				<form

@@ -5,10 +5,7 @@ const User = require('../schemas/User');
 // Returns the business_id of a user
 const getBusinessId = async (email) => {
 	// Get User document from the DB
-	const user = await User.findOne(
-		{ email: email },
-		{ business_id: 1 }
-	);
+	const user = await User.findOne({ email: email }, { business_id: 1 });
 
 	if (!user) {
 		// User not found in the DB
@@ -17,6 +14,25 @@ const getBusinessId = async (email) => {
 
 	const businessId = user.business_id;
 	return businessId;
+};
+
+const checkConditions = async (action, email) => {
+	if (action === 'demote') {
+		// Get the business_id of the user being demoted
+		const business_id = await getBusinessId(email);
+
+		// Count the number of admins in the business
+		const admin_count = await User.countDocuments({
+			business_id: business_id,
+			admin: true,
+		});
+
+		if (admin_count === 1) {
+			// Target user if the only admin in the business
+			return false;
+		}
+	}
+	return true;
 };
 
 // @route   POST /api/admin/get-user-list
@@ -57,8 +73,7 @@ router.post('/get-user-list', async (req, res) => {
 		if (users.length === 0) {
 			// No users are associated with the business_id
 			return res.status(401).json({
-				error:
-					'No users found with the specified business ID.',
+				error: 'No users found with the specified business ID.',
 			});
 		}
 
@@ -87,6 +102,20 @@ router.post('/change-admin-status', async (req, res) => {
 			});
 		}
 
+		const conditionsMet = await checkConditions(action, targetEmail);
+
+		if (!conditionsMet) {
+			// Conditions are not met
+			if (action === 'demote') {
+				// Target user is the only admin of the business
+				return res.status(400).json({
+					error: 'At least one user must be an admin',
+					message:
+						'At least one user must be an admin. Promote another user to admin before demoting this user.',
+				});
+			}
+		}
+
 		if (action === 'promote') {
 			// User is being promoted to admin
 			admin = true;
@@ -103,14 +132,18 @@ router.post('/change-admin-status', async (req, res) => {
 			// Admin status was not updated in the DB
 			return res.status(400).json({
 				error: 'Error saving admin status',
-				message: 'Error saving admin status.',
+				message: 'There was an error promoting user to admin.',
 			});
 		}
 
+		// Set success repsonse message
+		const message =
+			action === 'promote'
+				? 'Promoted user to admin successfully.'
+				: 'Demoted admin to user successfully.';
+
 		// Send success response
-		return res
-			.status(200)
-			.json({ message: `User ${action}d successfully` });
+		return res.status(200).json({ message: message });
 	} catch (err) {
 		res.status(400).json({
 			error: 'Error changing admin status: ' + err.message,
@@ -165,9 +198,7 @@ router.post('/remove-user-access', async (req, res) => {
 // @access  Public (no auth yet)
 router.post('/add-user-access', async (req, res) => {
 	try {
-		const business_id = await getBusinessId(
-			req.cookies.email
-		);
+		const business_id = await getBusinessId(req.cookies.email);
 		const { email: targetEmail, status } = req.body;
 
 		if (!targetEmail || !status) {

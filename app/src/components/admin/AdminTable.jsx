@@ -144,12 +144,13 @@ const AdminTable = () => {
 					body: JSON.stringify({ email: targetEmail }),
 				}
 			);
+			const result = await response.json();
+
+			setMessage(result.message);
 
 			if (response.ok) {
-				setMessage(`Removed user access successfully.`);
 				setShowConfirmation(true);
 			} else {
-				setMessage(`There was an error removing user access.`);
 				setShowError(true);
 			}
 		} catch (err) {

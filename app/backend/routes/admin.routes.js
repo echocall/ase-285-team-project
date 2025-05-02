@@ -18,21 +18,19 @@ const getBusinessId = async (email) => {
 };
 
 const checkConditions = async (action, email) => {
-	if (action === 'demote') {
-		// Get the business_id of the user being demoted
-		const business_id = await getBusinessId(email);
+	// Get the business_id of the user being modified
+	const business_id = await getBusinessId(email);
 
-		// Count the number of admins in the business
-		const admin_count = await User.countDocuments({
-			business_id: business_id,
-			admin: true,
-		});
+	// Count the number of admins in the business
+	const admin_count = await User.countDocuments({
+		business_id: business_id,
+		admin: true,
+	});
 
-		if (admin_count === 1) {
-			// Target user if the only admin in the business
-			return false;
-		}
+	if (admin_count === 1 && (action === 'demote' || action === 'remove')) {
+		return false;
 	}
+
 	return true;
 };
 
@@ -117,8 +115,8 @@ router.post('/change-admin-status', async (req, res) => {
 			}
 
 			return res.status(400).json({
-				error: 'unknown error',
-				message: 'unknown error',
+				error: 'Something went wrong',
+				message: 'Something went wrong.',
 			});
 		}
 
@@ -152,6 +150,8 @@ router.post('/change-admin-status', async (req, res) => {
 		if (targetEmail === req.cookies.email) {
 			// Update admin cookie
 			cookies.updateCookie(res, 'isAdmin', admin);
+
+			// Set success response message
 			message = 'You have been demoted to user. Redirecting to your dashboard.';
 		}
 
@@ -180,10 +180,25 @@ router.post('/remove-user-access', async (req, res) => {
 			});
 		}
 
+		const action = 'remove';
+		const conditionsMet = await checkConditions(action, targetEmail);
+
+		if (!conditionsMet) {
+			// Conditions are not met
+			// Target user is the only admin of the business
+			return res.status(400).json({
+				error: 'At least one admin must be associated with the business',
+				message:
+					'At least one admin must be associated with the business. Add another user with admin status before removing your access.',
+			});
+		}
+
+		const admin = false;
+
 		// Remove user's business_id from the DB
 		const updatedUser = await User.findOneAndUpdate(
 			{ email: targetEmail },
-			{ $set: { business_id: '' } },
+			{ $set: { business_id: '', admin: admin } },
 			{ new: true }
 		);
 
@@ -195,9 +210,19 @@ router.post('/remove-user-access', async (req, res) => {
 			});
 		}
 
+		// Check if user is removing their acccess
+		if (targetEmail === req.cookies.email) {
+			// Update admin and hasBusiness cookies
+			cookies.updateCookie(res, 'isAdmin', admin);
+			cookies.updateCookie(res, 'hasBusiness', false);
+
+			// Set success response message
+			message = 'You have been demoted to user. Redirecting to your dashboard.';
+		}
+
 		// Send success response
 		return res.status(200).json({
-			message: 'User access removed successfully.',
+			message: 'Removed user access successfully.',
 		});
 	} catch (err) {
 		res.status(400).json({

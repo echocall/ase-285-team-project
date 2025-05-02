@@ -34,7 +34,6 @@ const CollapsiblePanel = ({ header, formData, onFormChange, onAddPanel, masterMe
                 allergens: formData.selectedAllergens || [],
                 menuIDs: menuIDs
           });
-          console.log('Saved menu item:', response.data);
           alert('Item saved successfully!');
         } catch (err) {
           console.error('Error saving menu item:', err);

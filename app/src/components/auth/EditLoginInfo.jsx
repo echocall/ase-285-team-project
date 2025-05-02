@@ -6,12 +6,14 @@ import ErrorMessage from '../ErrorMessage';
 import getCookie from '../../assets/cookies';
 import format from '../../assets/formValidation.js';
 import '../../css/auth.scss';
+import { useNavigate } from 'react-router-dom';
 
 function EditLoginInfo() {
 	const [option, setOption] = useState('');
 	const [message, setMessage] = useState('');
 	const [showError, setShowError] = useState(false);
 	const [showConfirmation, setShowConfirmation] = useState(false);
+	const navigate = useNavigate();
 
 	const getEditLoginForm = (option) => {
 		switch (option) {
@@ -122,7 +124,17 @@ function EditLoginInfo() {
 				<></>
 			)}
 
-			<h1>Edit Login Information</h1>
+			<h1>
+				<button
+					onClick={() => {
+						navigate('/dashboard');
+					}}
+					className='button gray-btn back-btn'
+				>
+					Back to Dashboard
+				</button>
+				Edit Login Information
+			</h1>
 
 			<div className='edit-login-info-form-container'>
 				<form

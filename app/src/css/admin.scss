@@ -19,8 +19,14 @@ input[type='email'].user-email {
 	}
 
 	&-header {
+		display: flex;
 		justify-content: center;
 	}
+}
+
+.back-btn {
+	position: absolute;
+	left: 60px;
 }
 
 .user {

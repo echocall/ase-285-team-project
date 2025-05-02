@@ -51,13 +51,7 @@ const MenuItemPanel = ({ item, menuID, onSave, onDelete }) => {
             setShowConfirm(false);
         } else {
             // remove current menuID from menuItem's menuIDs array
-            if (item.menuIDs.includes(menuID)) {
-                // Remove the menu ID if it already exists
-                return {
-                    ...item,
-                    menuIDs: item.menuIDs.filter(id => id !== menuID)
-                };
-            }
+            alert("Remove menu item from non Master Menu by moving it in in Integrate Menu.")
         }
     } catch (err) {
       console.error('Error deleting menu item:', err);

@@ -201,8 +201,9 @@ router.post('/remove-user-access', async (req, res) => {
 			{ $set: { business_id: '', admin: admin } },
 			{ new: true }
 		);
+		console.log('admin:', admin);
 
-		if (updatedUser.business_id !== '') {
+		if (updatedUser.business_id !== '' || updatedUser.admin !== admin) {
 			// User's business_id was not removed from the DB
 			return res.status(400).json({
 				error: 'Error removing user access',
@@ -210,7 +211,7 @@ router.post('/remove-user-access', async (req, res) => {
 			});
 		}
 
-		// Check if user is removing their acccess
+		// Check if user is removing their own acccess
 		if (targetEmail === req.cookies.email) {
 			// Update admin and hasBusiness cookies
 			cookies.updateCookie(res, 'isAdmin', admin);

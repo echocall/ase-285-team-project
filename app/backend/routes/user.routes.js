@@ -45,28 +45,35 @@ router.post('/signin', async (req, res) => {
 		cookies.setCookies(res, foundUser);
 
 		// Get business name
-		const foundBusiness = await Business.findById(foundUser.business_id, {
-			name: 1,
-		});
-
-		if (!foundBusiness) {
-			// Business does not exist
+		if (foundUser.business_id === '') {
 			cookies.updateCookie(res, 'hasBusiness', false);
-			return res.status(401).json({
-				error: 'Business not found',
-				message:
-					'The business associated with your account may have been deleted.\nPlease create a new business or join a different one.',
-			});
-		}
+		} else {
+			const foundBusiness = await Business.findOne(
+				{ _id: foundUser.business_id },
+				{
+					name: 1,
+				}
+			);
 
-		if (foundBusiness.name === 'New Business') {
-			cookies.updateCookie(res, 'hasBusiness', false);
+			if (!foundBusiness) {
+				// Business does not exist
+				cookies.updateCookie(res, 'hasBusiness', false);
+				return res.status(401).json({
+					error: 'Business not found',
+					message:
+						'The business associated with your account may have been deleted.\nPlease create a new business or join a different one.',
+				});
+			}
+
+			if (foundBusiness.name === 'New Business') {
+				cookies.updateCookie(res, 'hasBusiness', false);
+			}
 		}
 
 		// Send success response w/ user's data
-		res.status(200).json(foundUser);
+		return res.status(200).json(foundUser);
 	} catch (err) {
-		res.status(500).json({
+		return res.status(500).json({
 			error: 'Could not fetch user' + err.message,
 			message: 'Could not fetch user.',
 		});

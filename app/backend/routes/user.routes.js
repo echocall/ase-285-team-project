@@ -52,9 +52,11 @@ router.post('/signin', async (req, res) => {
 		if (!foundBusiness) {
 			// Business does not exist
 			cookies.updateCookie(res, 'hasBusiness', false);
-			return res
-				.status(401)
-				.json({ error: 'Business not found', message: 'Business not found.' });
+			return res.status(401).json({
+				error: 'Business not found',
+				message:
+					'The business associated with your account may have been deleted.\nPlease create a new business or join a different one.',
+			});
 		}
 
 		if (foundBusiness.name === 'New Business') {

@@ -9,9 +9,7 @@ import getCookie from '../../assets/cookies.jsx';
 
 function GetAuthForm({ formName }) {
 	const navigate = useNavigate();
-	const [message, setMessage] = useState(
-		'Something went wrong'
-	);
+	const [message, setMessage] = useState('Something went wrong');
 	const [showError, setShowError] = useState(false);
 
 	const checkCredentials = async (event) => {
@@ -19,29 +17,22 @@ function GetAuthForm({ formName }) {
 		const form = event.target;
 
 		if (formName === 'signUpForm') {
-			const validEmail = format.validateEmail(
-				form.email.value
-			);
+			const validEmail = format.validateEmail(form.email.value);
 
 			if (!validEmail) {
 				setMessage('Invalid email format.');
 				setShowError(true);
 			} else {
 				const passwordsMatch =
-					form.password.value ===
-					form.confirmPassword.value;
+					form.password.value === form.confirmPassword.value;
 
-				const validPassword = format.validatePassword(
-					form.password.value
-				);
+				const validPassword = format.validatePassword(form.password.value);
 
 				if (!passwordsMatch) {
 					setMessage('Passwords do not match.');
 					setShowError(true);
 				} else if (!validPassword) {
-					setMessage(
-						'Password must be at least 6 characters long.'
-					);
+					setMessage('Password must be at least 6 characters long.');
 					setShowError(true);
 				} else {
 					await signUp(form);
@@ -62,7 +53,7 @@ function GetAuthForm({ formName }) {
 			menu_item_layout: 0,
 			admin: true,
 		};
-	
+
 		try {
 			const response = await fetch('http://localhost:5000/api/auth/signup', {
 				method: 'POST',
@@ -73,10 +64,10 @@ function GetAuthForm({ formName }) {
 				body: JSON.stringify(formData),
 			});
 			const result = await response.json();
-	
+
 			if (response.ok) {
 				localStorage.setItem('justSignedUp', 'true');
-				navigate('/choose-business'); 
+				navigate('/choose-business');
 			} else {
 				setMessage(result.message);
 				setShowError(true);
@@ -85,7 +76,6 @@ function GetAuthForm({ formName }) {
 			console.error('Error: ', err.message);
 		}
 	};
-	
 
 	// Logs a user in
 	const logIn = async (form) => {
@@ -93,7 +83,7 @@ function GetAuthForm({ formName }) {
 			email: form.email.value,
 			password: form.password.value,
 		};
-	
+
 		try {
 			const response = await fetch('http://localhost:5000/api/auth/signin', {
 				method: 'POST',
@@ -102,13 +92,13 @@ function GetAuthForm({ formName }) {
 				body: JSON.stringify(formData),
 			});
 			const result = await response.json();
-	
+
 			if (response.ok) {
 				// Store business_id if it exists
 				if (result.business_id) {
 					localStorage.setItem('business_id', result.business_id);
 				}
-	
+
 				if (getCookie('hasBusiness') === 'false') {
 					navigate('/choose-business');
 				} else {
@@ -122,7 +112,6 @@ function GetAuthForm({ formName }) {
 			console.error('Error: ', err.message);
 		}
 	};
-	
 
 	return (
 		<form
@@ -134,7 +123,9 @@ function GetAuthForm({ formName }) {
 			{showError ? (
 				<ErrorMessage
 					message={message}
-					destination={false}
+					destination={
+						getCookie('hasBusiness') === 'true' ? false : '/choose-business'
+					}
 					onClose={() => setShowError(false)}
 				/>
 			) : (
@@ -142,11 +133,7 @@ function GetAuthForm({ formName }) {
 			)}
 
 			<h2
-				className={
-					formName === 'signUpForm'
-						? ' sign-up-title'
-						: 'login-title'
-				}
+				className={formName === 'signUpForm' ? ' sign-up-title' : 'login-title'}
 			>
 				NomNom Safe
 			</h2>

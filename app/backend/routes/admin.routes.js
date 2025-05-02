@@ -17,9 +17,9 @@ const getBusinessId = async (email) => {
 	return businessId;
 };
 
-const checkConditions = async (action, email) => {
+const checkConditions = async (action, targetEmail) => {
 	// Get the business_id of the user being modified
-	const business_id = await getBusinessId(email);
+	const business_id = await getBusinessId(targetEmail);
 
 	// Count the number of admins in the business
 	const admin_count = await User.countDocuments({
@@ -255,6 +255,33 @@ router.post('/add-user-access', async (req, res) => {
 			return res.status(400).json({
 				error: `Business id not found. Business id: ${business_id}`,
 				message: `Business id not found. Business id: ${business_id}`,
+			});
+		}
+
+		const foundUser = await User.findOne({ email: targetEmail });
+
+		if (!foundUser) {
+			console.log('foundUser:', foundUser);
+			return res.status(400).json({
+				error: 'User does not exist',
+				message: 'User does not exist.',
+			});
+		}
+
+		if (foundUser.business_id === business_id) {
+			return res.status(400).json({
+				error: 'User already has access to the business',
+				message: 'User already has access to the business.',
+			});
+		}
+
+		if (
+			foundUser.business_id !== '' &&
+			foundUser.business_id !== 'New Business'
+		) {
+			return res.status(400).json({
+				error: 'User has access to another business and cannot be added',
+				message: 'User has access to another business and cannot be added.',
 			});
 		}
 

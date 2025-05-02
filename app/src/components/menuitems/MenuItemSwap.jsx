@@ -64,13 +64,12 @@ const MenuItemPicklist = () => {
         setSearchTerms((prev) => ({ ...prev, [menuID]: value }));
     };
 
-    /* const filteredMenuItems = (menu, searchTerm) => {
+    const filteredMenuItems = (menu, searchTerm) => {
         return menuItems.filter(item => 
           item.menuIDs.includes(menu._id) &&
           item.name.toLowerCase().includes(searchTerm.toLowerCase())
         );
       };
-    */
 
       // menuItem checkbox changes
       const handleCheckboxChange = (compositeKey) => {
@@ -178,31 +177,31 @@ const MenuItemPicklist = () => {
 
     // Removing an item from a menu.
     const handleDeleteItem = () => {
-      const parentMenu = menus.find(menu => menu.isSelected);
+        const parentMenu = menus.find(menu => menu.isSelected);
     
-      if (!parentMenu) {
-        alert("Please select parent menu to delete from first.");
-        return;
-      }
+        if (!parentMenu) {
+            alert("Please select parent menu to remove item from first.");
+            return;
+        }
+        // Do not allow user to remove from MasterMenu
+        if (parentMenu._id === masterMenuID) {
+            alert("Cannot remove from Master Menu.");
+            return;
+        }
     
-      if (parentMenu._id === "0") {
-        alert("Cannot remove from Master Menu.");
-        return;
-      }
-    
-      setMenuItems((prevItems) => {
-        return prevItems.map(item => {
-          const itemSelected = [...selectedKeys].some(key => key.startsWith(item._id));
-          if (itemSelected) {
-            const updatedMenuIDs = item.menuIDs.filter(id => id !== parentMenu._id);
-            return { 
-              ...item,
-              menuIDs: updatedMenuIDs
-            };
-          }
-          return item;
+        setMenuItems((prevItems) => {
+            return prevItems.map(item => {
+            const itemSelected = [...selectedKeys].some(key => key.startsWith(item._id));
+            if (itemSelected) {
+                const updatedMenuIDs = item.menuIDs.filter(id => id !== parentMenu._id);
+                return { 
+                ...item,
+                menuIDs: updatedMenuIDs
+                };
+            }
+            return item;
+            });
         });
-      });
     
       // Clear selection after delete
       setSelectedKeys(new Set());

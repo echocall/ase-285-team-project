@@ -3,12 +3,14 @@ import { FaPencilAlt, FaTrash, FaSave } from 'react-icons/fa';
 import axios from 'axios';
 import '../../../css/styles.css'
 
-const MenuItemPanel = ({ item, onSave, onDelete }) => {
+const MenuItemPanel = ({ item, menuID, onSave, onDelete }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [menuItemToDelete, setMenuItemToDelete] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({ ...item });
+  
+  const masterMenuID = localStorage.getItem('masterMenu_ID');
 
   const toggleOpen = () => setIsOpen(!isOpen);
   const toggleEdit = () => setIsEditing(!isEditing);
@@ -35,15 +37,22 @@ const MenuItemPanel = ({ item, onSave, onDelete }) => {
     }
   
     try {
-      await axios.delete(`http://localhost:5000/api/menuitems/${menuItemToDelete}`);
-  
-      if (onDelete) {
-        onDelete(menuItemToDelete);
-      }
-      alert('Menu item deleted successfully!');
-  
-      setMenuItemToDelete(null);
-      setShowConfirm(false);
+        // if current menuID is masterMenuID, Delete the entire menuItem
+        if (menuID === masterMenuID)
+        {
+            await axios.delete(`http://localhost:5000/api/menuitems/${menuItemToDelete}`);
+        
+            if (onDelete) {
+              onDelete(menuItemToDelete);
+            }
+            alert('Menu item deleted successfully!');
+        
+            setMenuItemToDelete(null);
+            setShowConfirm(false);
+        } else {
+            // remove current menuID from menuItem's menuIDs array
+            alert("Remove menu item from non Master Menu by moving it in in Integrate Menu.")
+        }
     } catch (err) {
       console.error('Error deleting menu item:', err);
     }

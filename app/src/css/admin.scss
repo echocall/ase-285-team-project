@@ -17,6 +17,16 @@ input[type='email'].user-email {
 			align-self: end;
 		}
 	}
+
+	&-header {
+		display: flex;
+		justify-content: center;
+	}
+}
+
+.back-btn {
+	position: absolute;
+	left: 60px;
 }
 
 .user {

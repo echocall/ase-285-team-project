@@ -1,14 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../schemas/User');
+const cookies = require('../utils/cookies');
 
 // Returns the business_id of a user
 const getBusinessId = async (email) => {
 	// Get User document from the DB
-	const user = await User.findOne(
-		{ email: email },
-		{ business_id: 1 }
-	);
+	const user = await User.findOne({ email: email }, { business_id: 1 });
 
 	if (!user) {
 		// User not found in the DB
@@ -17,6 +15,23 @@ const getBusinessId = async (email) => {
 
 	const businessId = user.business_id;
 	return businessId;
+};
+
+const checkConditions = async (action, targetEmail) => {
+	// Get the business_id of the user being modified
+	const business_id = await getBusinessId(targetEmail);
+
+	// Count the number of admins in the business
+	const admin_count = await User.countDocuments({
+		business_id: business_id,
+		admin: true,
+	});
+
+	if (admin_count === 1 && (action === 'demote' || action === 'remove')) {
+		return false;
+	}
+
+	return true;
 };
 
 // @route   POST /api/admin/get-user-list
@@ -57,8 +72,7 @@ router.post('/get-user-list', async (req, res) => {
 		if (users.length === 0) {
 			// No users are associated with the business_id
 			return res.status(401).json({
-				error:
-					'No users found with the specified business ID.',
+				error: 'No users found with the specified business ID.',
 			});
 		}
 
@@ -87,6 +101,25 @@ router.post('/change-admin-status', async (req, res) => {
 			});
 		}
 
+		const conditionsMet = await checkConditions(action, targetEmail);
+
+		if (!conditionsMet) {
+			// Conditions are not met
+			if (action === 'demote') {
+				// Target user is the only admin of the business
+				return res.status(400).json({
+					error: 'At least one user must be an admin',
+					message:
+						'At least one user must be an admin. Promote another user to admin before demoting this user.',
+				});
+			}
+
+			return res.status(400).json({
+				error: 'Something went wrong',
+				message: 'Something went wrong.',
+			});
+		}
+
 		if (action === 'promote') {
 			// User is being promoted to admin
 			admin = true;
@@ -103,14 +136,27 @@ router.post('/change-admin-status', async (req, res) => {
 			// Admin status was not updated in the DB
 			return res.status(400).json({
 				error: 'Error saving admin status',
-				message: 'Error saving admin status.',
+				message: 'There was an error promoting user to admin.',
 			});
 		}
 
+		// Set success repsonse message
+		var message =
+			action === 'promote'
+				? 'Promoted user to admin successfully.'
+				: 'Demoted admin to user successfully.';
+
+		// Check if user is demoting theirself
+		if (targetEmail === req.cookies.email) {
+			// Update admin cookie
+			cookies.updateCookie(res, 'isAdmin', admin);
+
+			// Set success response message
+			message = 'You have been demoted to user. Redirecting to your dashboard.';
+		}
+
 		// Send success response
-		return res
-			.status(200)
-			.json({ message: `User ${action}d successfully` });
+		return res.status(200).json({ message: message });
 	} catch (err) {
 		res.status(400).json({
 			error: 'Error changing admin status: ' + err.message,
@@ -134,14 +180,29 @@ router.post('/remove-user-access', async (req, res) => {
 			});
 		}
 
+		const action = 'remove';
+		const conditionsMet = await checkConditions(action, targetEmail);
+
+		if (!conditionsMet) {
+			// Conditions are not met
+			// Target user is the only admin of the business
+			return res.status(400).json({
+				error: 'At least one admin must be associated with the business',
+				message:
+					'At least one admin must be associated with the business. Add another user with admin status before removing your access.',
+			});
+		}
+
+		const admin = false;
+
 		// Remove user's business_id from the DB
 		const updatedUser = await User.findOneAndUpdate(
 			{ email: targetEmail },
-			{ $set: { business_id: '' } },
+			{ $set: { business_id: '', admin: admin } },
 			{ new: true }
 		);
 
-		if (updatedUser.business_id !== '') {
+		if (updatedUser.business_id !== '' || updatedUser.admin !== admin) {
 			// User's business_id was not removed from the DB
 			return res.status(400).json({
 				error: 'Error removing user access',
@@ -149,9 +210,19 @@ router.post('/remove-user-access', async (req, res) => {
 			});
 		}
 
+		// Check if user is removing their own acccess
+		if (targetEmail === req.cookies.email) {
+			// Update admin and hasBusiness cookies
+			cookies.updateCookie(res, 'isAdmin', admin);
+			cookies.updateCookie(res, 'hasBusiness', false);
+
+			// Set success response message
+			message = 'You have been demoted to user. Redirecting to your dashboard.';
+		}
+
 		// Send success response
 		return res.status(200).json({
-			message: 'User access removed successfully.',
+			message: 'Removed user access successfully.',
 		});
 	} catch (err) {
 		res.status(400).json({
@@ -165,9 +236,7 @@ router.post('/remove-user-access', async (req, res) => {
 // @access  Public (no auth yet)
 router.post('/add-user-access', async (req, res) => {
 	try {
-		const business_id = await getBusinessId(
-			req.cookies.email
-		);
+		const business_id = await getBusinessId(req.cookies.email);
 		const { email: targetEmail, status } = req.body;
 
 		if (!targetEmail || !status) {
@@ -185,6 +254,32 @@ router.post('/add-user-access', async (req, res) => {
 			return res.status(400).json({
 				error: `Business id not found. Business id: ${business_id}`,
 				message: `Business id not found. Business id: ${business_id}`,
+			});
+		}
+
+		const foundUser = await User.findOne({ email: targetEmail });
+
+		if (!foundUser) {
+			return res.status(400).json({
+				error: 'User does not exist',
+				message: 'User does not exist.',
+			});
+		}
+
+		if (foundUser.business_id === business_id) {
+			return res.status(400).json({
+				error: 'User already has access to the business',
+				message: 'User already has access to the business.',
+			});
+		}
+
+		if (
+			foundUser.business_id !== '' &&
+			foundUser.business_id !== 'New Business'
+		) {
+			return res.status(400).json({
+				error: 'User has access to another business and cannot be added',
+				message: 'User has access to another business and cannot be added.',
 			});
 		}
 

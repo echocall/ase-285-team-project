@@ -3,11 +3,13 @@ import AdminTable from './AdminTable';
 import GetConfirmationMessage from '../ConfirmationMessage';
 import ErrorMessage from '../ErrorMessage';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 function UserMaintenance() {
 	const [message, setMessage] = useState('Something went wrong');
 	const [showError, setShowError] = useState(false);
 	const [showConfirmation, setShowConfirmation] = useState(false);
+	const navigate = useNavigate();
 
 	const addUserAccess = async (event) => {
 		event.preventDefault();
@@ -30,12 +32,13 @@ function UserMaintenance() {
 					body: JSON.stringify(data),
 				}
 			);
+			const result = await response.json();
+
+			setMessage(result.message);
 
 			if (response.ok) {
-				setMessage('Added user access successfully.');
 				setShowConfirmation(true);
 			} else {
-				setMessage(`There was an error adding user access.`);
 				setShowError(true);
 			}
 		} catch (err) {
@@ -57,13 +60,24 @@ function UserMaintenance() {
 			{showError ? (
 				<ErrorMessage
 					message={message}
-					destination={0}
+					destination={false}
+					onClose={() => setShowError(false)}
 				/>
 			) : (
 				<></>
 			)}
 
-			<h1>User Maintenance</h1>
+			<h1 className='admin-header'>
+				<button
+					onClick={() => {
+						navigate('/dashboard');
+					}}
+					className='button gray-btn back-btn'
+				>
+					Back to Dashboard
+				</button>
+				User Maintenance
+			</h1>
 
 			<div className='user-maintenance-container'>
 				<form

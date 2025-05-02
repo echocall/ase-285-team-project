@@ -117,7 +117,7 @@ function ChooseBusiness() {
 
 				if (!createBusinessResponse.ok) {
 					const result = await createBusinessResponse.json();
-					setMessage(result.message || 'Failed to create business');
+					setMessage(result.message);
 					setShowError(true);
 					return;
 				}
@@ -161,7 +161,7 @@ function ChooseBusiness() {
 							'Content-Type': 'application/json',
 						},
 						body: JSON.stringify({
-							type: 'existing',
+							type: 'new',
 							business_id: businessId,
 						}),
 					}
@@ -173,8 +173,6 @@ function ChooseBusiness() {
 					setShowError(true);
 					return;
 				}
-
-				document.cookie = 'hasBusiness=true; path=/;';
 
 				// Redirect to step 1
 				navigate('/step1');

@@ -42,7 +42,8 @@ Manages backend functionality and server for MongoDB.
 | **`/api/menus`** | **`POST`** | **`{ title: "Lunch", description: "...", restaurant: "business_id" }`** | **`201`** + New menu | **`404`** (Business not found), **`400`** (Validation) |
 | **`/api/menuitems/add-menu-item`** | **`POST`** | **`{ name: "Salad", allergens: ["Nuts"], menuIDs: ["menu_id"] }`** | **`201`** + Saved item | **`400`** (Empty fields), **`500`** (Save failed) |
 | **`/api/menuitems/swap-menu/:id`** | **`PUT`** | **`{ menuIDs: ["new_menu_id"] }`** (Update item's menu associations) | **`200`** + Updated item | **`404`** (Item not found), **`400`** (Invalid ID) |
-| **`/api/admin/get-user-list`** | **`POST`** | Requires **`email`** cookie (auto-sent) | **`200`** + **`[{ email: "...", status: "admin" }]`** | **`401`** (No business ID), **`404`** (No users) |
+| **`/api/admin/get-user-list`** | **`POST`** | Requires **`email`** cookie (auto-sent) | **`200`** + **`users[]`** | **`401`** (No business ID), **`401`** (No users with specified business ID), **`404`** (No users) |
+| **`/api/admin/change-admin-status`** | **`POST`** | Requires **`{action, targetEmail}`** req.body | **`200`** + **`{message: message}`** | **`400`** (Unknown action: ${action}), **`400`** ('At least one user must be an admin'), **`400`** ('Something went wrong'), **`400`** ('Error saving admin status'), **`400`** ('Error changing admin status: ' + err.message) |
 | **`/api/businesses/:id`** | **`GET`** | None (ID in URL) | **`200`** + Business data with populated menus | **`404`** (Business not found) |
 | **`PUT /api/menuitems/:id`** | **`PUT`** | **`{ name: "...", allergens: [...] }`** (Partial updates allowed) | **`200`** + Updated item | **`404`** (Item not found), **`400`** (Invalid data) |
 | **`DELETE /api/menuitems/:id`** | **`DELETE`** | None | **`200`** + **`{ message: "Deleted successfully" }`** | **`404`** (Item not found) |
@@ -78,6 +79,8 @@ Manages backend functionality and server for MongoDB.
 | Duplicate Business | **`400`** + **`{ error: "Business name exists" }`** | **`businessRoutes.js`** (POST) |
 | Missing Required Fields | **`400`** + **`{ error: "All fields required" }`** | **`menuItemsRoutes.js`** (add-menu-item) |
 | Unauthorized Access | **`401`** + **`{ error: "Business ID not found" }`** | **`admin.routes.js`** (get-user-list) |
+| Missing Information | **`404`** + **`{ error: 'Menu Item not found' }`** | **`menuitemsRoutes.js`** (DELETE /api/menuitems/:id) |
+| Could Not Retrieve Data | **`500`** + **`{ error: 'Could not fetch menu items' }`** | **`menuItemsRoutes.js`** (GET /api/menuitems) |
 
 ---
 

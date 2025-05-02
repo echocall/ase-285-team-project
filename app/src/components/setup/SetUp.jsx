@@ -35,10 +35,10 @@ function SetUp({ step }) {
 
 	const completeSetUp = async (event) => {
 		event.preventDefault();
-	
+
 		try {
 			let businessId = localStorage.getItem('business_id');
-	
+
 			// Step 1: Create business if not already created
 			if (!businessId) {
 				const response = await fetch('http://localhost:5000/api/businesses', {
@@ -52,41 +52,46 @@ function SetUp({ step }) {
 						diets: formData.diets,
 					}),
 				});
-	
+
 				if (!response.ok) {
 					const result = await response.json();
 					if (result.error?.includes('Business name already exists')) {
-						alert('That business name is already in use. Please choose another.');
+						alert(
+							'That business name is already in use. Please choose another.'
+						);
 						return;
 					}
 					throw new Error('Failed to create business');
 				}
-	
+
 				const created = await response.json();
 				businessId = created._id;
 				localStorage.setItem('business_id', businessId);
 			}
-	
+
 			// Step 2: Update business (layout, etc.)
-			const updateResponse = await fetch(`http://localhost:5000/api/businesses/${businessId}`, {
-				method: 'PUT',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({
-					name: formData.name,
-					url: formData.url,
-					address: formData.address,
-					allergens: formData.allergens,
-					diets: formData.diets,
-					menuLayout: formData.menuLayout,
-				}),
-			});
-	
+			const updateResponse = await fetch(
+				`http://localhost:5000/api/businesses/${businessId}`,
+				{
+					method: 'PUT',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({
+						name: formData.name,
+						url: formData.url,
+						address: formData.address,
+						allergens: formData.allergens,
+						diets: formData.diets,
+						menuLayout: formData.menuLayout,
+					}),
+				}
+			);
+
 			if (!updateResponse.ok) throw new Error('Failed to update business');
-	
+
 			const updatedBusiness = await updateResponse.json();
 
 			document.cookie = 'hasBusiness=true; path=/;';
-	
+
 			// Finish setup
 			localStorage.removeItem('justSignedUp');
 			navigate('/dashboard', { state: { business: updatedBusiness } });
@@ -94,7 +99,6 @@ function SetUp({ step }) {
 			console.error('Error completing setup:', error);
 		}
 	};
-	
 
 	const updateFormData = (stepData) => {
 		setFormData((prev) => ({ ...prev, ...stepData }));
@@ -181,16 +185,12 @@ function SetUp({ step }) {
 			<div className={`step${step}`}>{renderStep()}</div>
 
 			<div className='buttons'>
-				{/* {step !== 1 ? ( */}
 				<button
 					onClick={navigateBack}
 					className='button gray-btn back-btn'
 				>
 					Back
 				</button>
-				{/* ) : (
-					<></>
-				)} */}
 
 				{renderBtns()}
 			</div>

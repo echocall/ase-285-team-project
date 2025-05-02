@@ -216,24 +216,18 @@ const MenuItemPicklist = () => {
     
     // Saving the altered menuItems
     const handleSave = async () => {
-      try {
-        const saveRequests = menuItems.map(menuItem =>
-          axios.post('http://localhost:5000/api/menuitems/swap-menu', {
-            name: menuItem.name,
-            description: menuItem.description,
-            ingredients: menuItem.ingredients,
-            allergens: menuItem.selectedAllergens || [],
-            menuIDs: menuItem.menuIDs
-          })
-        );
-        await Promise.all(saveRequests);
-    
-        alert('All items saved successfully!');
-      } catch (err) {
-        console.error('Error saving items:', err);
-        alert('Failed to save all items.');
-      }
-    }
+        try {
+          const saveRequests = menuItems.map(menuItem => {
+            console.log('Saving item:', menuItem._id); 
+            return axios.put(`http://localhost:5000/api/menuitems/swap-menu/${menuItem._id}`, menuItem);
+          });
+          await Promise.all(saveRequests);
+          alert('All items saved successfully!');
+        } catch (err) {
+          console.error('Error saving items:', err);
+          alert('Failed to save all items.');
+        }
+      };
 
     // Go back to menu
     const toMenu = (event) => {

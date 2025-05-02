@@ -218,35 +218,32 @@ router.get('/swap-menu', async (req, res) => {
 });
 
 
-// @route   PUT /api/menuitem/swap-menu
+// @route   Put /api/menuitem/swap-menu
 // @desc    Update the existing menuItems
 // @access  Public (no auth yet)
-router.put('/swap-menu', async (req, res) => {
-  try {
-    const { name, description, ingredients, allergens, menuIDs } = req.body;
-    console.log(req.body)
-    // Ensure the ID is provided
-    if (!id) {
-      return res.status(400).json({ error: 'Menu item ID is required' });
+router.put('/swap-menu/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+      const { name, description, ingredients, allergens, menuIDs } = req.body;
+      console.log("incoming body", req.body)
+  
+      if (!id) {
+        return res.status(400).json({ error: 'Menu item ID is required' });
+      }
+      const updatedMenuItem = await MenuItem.findByIdAndUpdate(
+        id,
+        { name, description, ingredients, allergens, menuIDs },
+        { new: true, runValidators: true }
+      );
+  
+      if (!updatedMenuItem) {
+        return res.status(404).json({ error: 'Menu item not found' });
+      }
+  
+      res.status(200).json(updatedMenuItem);
+    } catch (err) {
+      res.status(500).json({ error: 'Error editing menu item: ' + err.message });
     }
-
-    const updatedMenuItem = await MenuItem.findByIdAndUpdate(
-      id,
-      // updated fields
-      { name, description, ingredients, allergens, menuIDs },
-       // Return the updated document and validate the data
-      { new: true, runValidators: true}
-    );
-
-    // If no menu item is found, return an error
-    if (!updatedMenuItem) {
-      return res.status(404).json({ error: 'Menu item not found' });
-    }
-
-    res.status(200).json(updatedMenuItem);
-  } catch (err) {
-    res.status(500).json({ error: 'Error editing menu item: ' + err.message });
-  }
 });
 
 
